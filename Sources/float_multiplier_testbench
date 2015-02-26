@@ -1,0 +1,246 @@
+#! /usr/local/bin/vvp
+:ivl_version "0.10.0 (devel)" "(s20121218-439-gbc9382e)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision + 0;
+:vpi_module "system";
+:vpi_module "vhdl_sys";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0xddf930 .scope module, "tester" "tester" 2 7;
+ .timescale 0 0;
+v0xe139c0_0 .var "clkExt", 0 0;
+v0xe13b10_0 .var "clkNorm", 0 0;
+v0xe13bd0_0 .var "iExp1", 4 0;
+v0xe13c70_0 .var "iExp2", 4 0;
+v0xe13d10_0 .var "iMant1", 9 0;
+v0xe13db0_0 .var "iMant2", 9 0;
+v0xe13e50_0 .net "oExpR", 4 0, L_0xe14500;  1 drivers
+v0xe13ef0_0 .net "oMantR", 14 0, L_0xe14410;  1 drivers
+S_0xddf090 .scope module, "mult1" "float_multiplier" 2 15, 3 1 0, S_0xddf930;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "clkExt"
+    .port_info 1 /INPUT 1 "clkNorm"
+    .port_info 2 /INPUT 10 "iMant1"
+    .port_info 3 /INPUT 5 "iExp1"
+    .port_info 4 /INPUT 10 "iMant2"
+    .port_info 5 /INPUT 5 "iExp2"
+    .port_info 6 /OUTPUT 15 "oMantR"
+    .port_info 7 /OUTPUT 5 "oExpR"
+L_0xe14500 .functor BUFZ 5, v0xe11e40_0, C4<00000>, C4<00000>, C4<00000>;
+v0xe12b10_0 .net/s "ExpPre", 4 0, L_0xe14260;  1 drivers
+v0xe12c40_0 .net/s "MantisaPre", 18 0, L_0xe14120;  1 drivers
+v0xe12d50_0 .net/s *"_s0", 18 0, L_0xe13f90;  1 drivers
+v0xe12e10_0 .net/s *"_s2", 18 0, L_0xe14030;  1 drivers
+v0xe12ef0_0 .net "clkExt", 0 0, v0xe139c0_0;  1 drivers
+v0xe12fe0_0 .net "clkNorm", 0 0, v0xe13b10_0;  1 drivers
+v0xe130d0_0 .net/s "iExp1", 4 0, v0xe13bd0_0;  1 drivers
+v0xe131b0_0 .net/s "iExp2", 4 0, v0xe13c70_0;  1 drivers
+v0xe13290_0 .net/s "iMant1", 9 0, v0xe13d10_0;  1 drivers
+v0xe13400_0 .net/s "iMant2", 9 0, v0xe13db0_0;  1 drivers
+v0xe134e0_0 .net "oExpR", 4 0, L_0xe14500;  alias, 1 drivers
+v0xe135c0_0 .net "oMantR", 14 0, L_0xe14410;  alias, 1 drivers
+v0xe136a0_0 .net/s "q3", 18 0, v0xe11d80_0;  1 drivers
+v0xe13760_0 .net/s "q4", 4 0, v0xe11e40_0;  1 drivers
+L_0xe13f90 .extend/s 19, v0xe13d10_0;
+L_0xe14030 .extend/s 19, v0xe13db0_0;
+L_0xe14120 .arith/mult 19, L_0xe13f90, L_0xe14030;
+L_0xe14260 .arith/sum 5, v0xe13bd0_0, v0xe13c70_0;
+L_0xe14410 .part v0xe11d80_0, 4, 15;
+S_0xddcb10 .scope module, "reNormalize" "Normalize" 3 25, 4 1 0, S_0xddf090;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "Clock"
+    .port_info 1 /INPUT 1 "clkNorm"
+    .port_info 2 /INPUT 19 "iVect"
+    .port_info 3 /INPUT 5 "iExp"
+    .port_info 4 /OUTPUT 19 "oMant"
+    .port_info 5 /OUTPUT 5 "oExp"
+P_0xde0f10 .param/l "SIZE" 0 4 1, +C4<010011>;
+L_0xe14300 .functor NOT 1, v0xe139c0_0, C4<0>, C4<0>, C4<0>;
+v0xe12140_0 .net "Clock", 0 0, v0xe139c0_0;  alias, 1 drivers
+v0xe12200_0 .net "clkNorm", 0 0, v0xe13b10_0;  alias, 1 drivers
+v0xe122c0_0 .net "expReal0", 4 0, v0xe10a20_0;  1 drivers
+v0xe123e0_0 .net "iExp", 4 0, L_0xe14260;  alias, 1 drivers
+v0xe12480_0 .net "iVect", 18 0, L_0xe14120;  alias, 1 drivers
+v0xe12570_0 .net "mantisaReal0", 18 0, v0xe111e0_0;  1 drivers
+v0xe12660_0 .net "oExp", 4 0, v0xe11e40_0;  alias, 1 drivers
+v0xe12700_0 .net "oMant", 18 0, v0xe11d80_0;  alias, 1 drivers
+v0xe127d0_0 .net "reExpReal0", 4 0, v0xe11c90_0;  1 drivers
+v0xe12900_0 .net "reMantReal0", 18 0, v0xe11bc0_0;  1 drivers
+S_0xddc8e0 .scope module, "muxExpoReal0" "mux2" 4 13, 5 1 0, S_0xddcb10;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "a1"
+    .port_info 1 /INPUT 5 "sel0"
+    .port_info 2 /INPUT 5 "sel1"
+    .port_info 3 /OUTPUT 5 "q0"
+P_0xddcc90 .param/l "SIZE" 0 5 1, +C4<0101>;
+v0xdc8410_0 .net "a1", 0 0, v0xe139c0_0;  alias, 1 drivers
+v0xe10a20_0 .var "q0", 4 0;
+v0xe10b00_0 .net/s "sel0", 4 0, v0xe11c90_0;  alias, 1 drivers
+v0xe10bf0_0 .net/s "sel1", 4 0, L_0xe14260;  alias, 1 drivers
+E_0xdf4770 .event edge, v0xe10bf0_0, v0xe10b00_0, v0xdc8410_0;
+S_0xe10d80 .scope module, "muxMantReal0" "mux2" 4 12, 5 1 0, S_0xddcb10;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "a1"
+    .port_info 1 /INPUT 19 "sel0"
+    .port_info 2 /INPUT 19 "sel1"
+    .port_info 3 /OUTPUT 19 "q0"
+P_0xe10f60 .param/l "SIZE" 0 5 1, +C4<010011>;
+v0xe110f0_0 .net "a1", 0 0, v0xe139c0_0;  alias, 1 drivers
+v0xe111e0_0 .var "q0", 18 0;
+v0xe112a0_0 .net/s "sel0", 18 0, v0xe11bc0_0;  alias, 1 drivers
+v0xe11390_0 .net/s "sel1", 18 0, L_0xe14120;  alias, 1 drivers
+E_0xe11090 .event edge, v0xe11390_0, v0xe112a0_0, v0xdc8410_0;
+S_0xe11520 .scope module, "normReal0" "normalizacion" 4 16, 6 5 0, S_0xddcb10;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "clkNorm"
+    .port_info 1 /INPUT 19 "vect"
+    .port_info 2 /INPUT 5 "exp"
+    .port_info 3 /INPUT 1 "enable"
+    .port_info 4 /OUTPUT 19 "q1"
+    .port_info 5 /OUTPUT 5 "q2"
+    .port_info 6 /OUTPUT 19 "q3"
+    .port_info 7 /OUTPUT 5 "q4"
+P_0xe116e0 .param/l "SIZE" 0 6 5, +C4<010011>;
+v0xe11920_0 .net "clkNorm", 0 0, v0xe13b10_0;  alias, 1 drivers
+v0xe11a00_0 .net "enable", 0 0, L_0xe14300;  1 drivers
+v0xe11ac0_0 .net "exp", 4 0, v0xe10a20_0;  alias, 1 drivers
+v0xe11bc0_0 .var "q1", 18 0;
+v0xe11c90_0 .var "q2", 4 0;
+v0xe11d80_0 .var "q3", 18 0;
+v0xe11e40_0 .var "q4", 4 0;
+v0xe11f20_0 .net "vect", 18 0, v0xe111e0_0;  alias, 1 drivers
+E_0xe118c0 .event negedge, v0xe11920_0;
+    .scope S_0xe10d80;
+T_0 ;
+    %wait E_0xe11090;
+    %load/v 8, v0xe110f0_0, 1;
+    %jmp/0xz  T_0.0, 8;
+    %load/v 8, v0xe11390_0, 19;
+    %ix/load 0, 19, 0;
+    %assign/v0 v0xe111e0_0, 0, 8;
+    %jmp T_0.1;
+T_0.0 ;
+    %load/v 8, v0xe112a0_0, 19;
+    %ix/load 0, 19, 0;
+    %assign/v0 v0xe111e0_0, 0, 8;
+T_0.1 ;
+    %jmp T_0;
+    .thread T_0, $push;
+    .scope S_0xddc8e0;
+T_1 ;
+    %wait E_0xdf4770;
+    %load/v 8, v0xdc8410_0, 1;
+    %jmp/0xz  T_1.0, 8;
+    %load/v 8, v0xe10bf0_0, 5;
+    %ix/load 0, 5, 0;
+    %assign/v0 v0xe10a20_0, 0, 8;
+    %jmp T_1.1;
+T_1.0 ;
+    %load/v 8, v0xe10b00_0, 5;
+    %ix/load 0, 5, 0;
+    %assign/v0 v0xe10a20_0, 0, 8;
+T_1.1 ;
+    %jmp T_1;
+    .thread T_1, $push;
+    .scope S_0xe11520;
+T_2 ;
+    %wait E_0xe118c0;
+    %load/v 8, v0xe11a00_0, 1;
+    %jmp/0xz  T_2.0, 8;
+    %ix/load 1, 18, 0;
+    %mov 4, 0, 1;
+    %jmp/1 T_2.2, 4;
+    %load/x1p 10, v0xe11f20_0, 1;
+    %jmp T_2.3;
+T_2.2 ;
+    %mov 10, 2, 1;
+T_2.3 ;
+    %mov 8, 10, 1; Move signal select into place
+    %pad 9, 0, 1;
+    %cmpi/u 8, 0, 2;
+    %jmp/0xz  T_2.4, 4;
+    %load/v 8, v0xe11f20_0, 19;
+    %ix/load 0, 1, 0;
+    %mov 4, 0, 1;
+    %shiftl/i0  8, 19;
+    %set/v v0xe11bc0_0, 8, 19;
+    %load/v 8, v0xe11ac0_0, 5;
+    %subi 8, 1, 5;
+    %set/v v0xe11c90_0, 8, 5;
+    %jmp T_2.5;
+T_2.4 ;
+    %load/v 8, v0xe11f20_0, 19;
+    %ix/load 0, 1, 0;
+    %mov 4, 0, 1;
+    %shiftr/i0  8, 19;
+    %set/v v0xe11d80_0, 8, 19;
+    %ix/load 0, 1, 0;
+    %load/vp0 8, v0xe11ac0_0, 5;
+    %set/v v0xe11e40_0, 8, 5;
+T_2.5 ;
+T_2.0 ;
+    %jmp T_2;
+    .thread T_2;
+    .scope S_0xddf930;
+T_3 ;
+    %set/v v0xe139c0_0, 0, 1;
+    %set/v v0xe13b10_0, 0, 1;
+    %movi 8, 29, 5;
+    %set/v v0xe13bd0_0, 8, 5;
+    %movi 8, 3, 5;
+    %set/v v0xe13c70_0, 8, 5;
+    %movi 8, 476, 10;
+    %set/v v0xe13d10_0, 8, 10;
+    %movi 8, 272, 10;
+    %set/v v0xe13db0_0, 8, 10;
+    %end;
+    .thread T_3;
+    .scope S_0xddf930;
+T_4 ;
+    %delay 1, 0;
+    %load/v 8, v0xe13b10_0, 1;
+    %inv 8, 1;
+    %set/v v0xe13b10_0, 8, 1;
+    %jmp T_4;
+    .thread T_4;
+    .scope S_0xddf930;
+T_5 ;
+    %delay 20, 0;
+    %load/v 8, v0xe139c0_0, 1;
+    %inv 8, 1;
+    %set/v v0xe139c0_0, 8, 1;
+    %jmp T_5;
+    .thread T_5;
+    .scope S_0xddf930;
+T_6 ;
+    %delay 40, 0;
+    %ix/load 0, 3, 0;
+    %load/vp0 8, v0xe13d10_0, 10;
+    %set/v v0xe13d10_0, 8, 10;
+    %ix/load 0, 1, 0;
+    %load/vp0 8, v0xe13db0_0, 10;
+    %set/v v0xe13db0_0, 8, 10;
+    %jmp T_6;
+    .thread T_6;
+    .scope S_0xddf930;
+T_7 ;
+    %delay 200, 0;
+    %vpi_call 2 39 "$finish" {0 0};
+    %end;
+    .thread T_7;
+    .scope S_0xddf930;
+T_8 ;
+    %vpi_call 2 43 "$monitor", $time, "  iExp1 = %b, iMant1 = %b, iExp2 = %b, iMant2 = %b, Resultado: %b x2 %b", v0xe13bd0_0, v0xe13d10_0, v0xe13c70_0, v0xe13db0_0, v0xe13ef0_0, v0xe13e50_0 {0 0};
+    %vpi_call 2 44 "$dumpfile", "float_multiplier_testbench.vcd" {0 0};
+    %vpi_call 2 45 "$dumpvars" {0 0};
+    %end;
+    .thread T_8;
+# The file index is used to find the file name in the following table.
+:file_names 7;
+    "N/A";
+    "<interactive>";
+    "float_multiplier_testbench.v";
+    "./float_multiplier.v";
+    "./Normalize.v";
+    "./mux2.v";
+    "./pruebaNormalizacion.v";

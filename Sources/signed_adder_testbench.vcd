@@ -1,0 +1,43 @@
+$date
+	Wed Dec 17 10:47:43 2014
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module signed_adder_testbench $end
+$var wire 1 ! cout $end
+$var wire 8 " sum [7:0] $end
+$var reg 8 # a [7:0] $end
+$var reg 8 $ b [7:0] $end
+$var reg 1 % cin $end
+$scope module S1 $end
+$var wire 8 & a [7:0] $end
+$var wire 8 ' b [7:0] $end
+$var wire 1 ( cin $end
+$var wire 1 ! cout $end
+$var wire 1 ) sa $end
+$var wire 1 * sb $end
+$var wire 1 + ssum $end
+$var wire 8 , sum [7:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b11011111 ,
+1+
+0*
+1)
+0(
+b1 '
+b11011110 &
+0%
+b1 $
+b11011110 #
+b11011111 "
+0!
+$end
+#100

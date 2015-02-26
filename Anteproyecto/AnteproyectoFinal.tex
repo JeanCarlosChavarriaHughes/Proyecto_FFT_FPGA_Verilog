@@ -1,0 +1,89 @@
+\documentclass[12pt,letterpaper]{article}     % Tipo de documento y otras especificaciones
+\usepackage[utf8x]{inputenc}                 % Para escribir tildes y eñes
+\usepackage[spanish]{babel}
+                  % Para que los títulos de figuras, tablas y otros estén en español
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}					% Cambiar nombre a tablas
+\addto\captionsspanish{\renewcommand{\listtablename}{Índice de tablas}}		% Cambiar nombre a lista de tablas
+\usepackage{geometry}                         
+\geometry{left=18mm,right=18mm,top=21mm,bottom=21mm} % Tamaño del área de escritura de la página
+\usepackage{ucs}
+\usepackage{amsmath}      % Los paquetes ams son desarrollados por la American Mathematical Society
+\usepackage{amsfonts}     % y mejoran la escritura de fórmulas y símbolos matemáticos.
+\usepackage{amssymb}
+\usepackage{graphicx}     % Para insertar gráficas
+\usepackage{enumerate}
+\usepackage[lofdepth,lotdepth]{subfig}	% Para colocar varias figuras
+\usepackage{unitsdef}	  % Para la presentación correcta de unidades
+\usepackage{pdfpages}   %incluir paginas de pdf externo, para los anexos
+\usepackage{appendix}   %para los anexos
+\renewcommand{\unitvaluesep}{\hspace*{4pt}}	% Redimensionamiento del espacio entre magnitud y unidad
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black,citecolor=black]{hyperref}     % Para insertar hipervínculos y marcadores
+\usepackage{float}		% Para ubicar las tablas y figuras justo después del texto
+\usepackage{booktabs}	% Para hacer tablas más estilizadas
+\usepackage{multicol}
+\batchmode
+\bibliographystyle{plain} 
+\pagestyle{plain} 
+\pagenumbering{arabic}
+\usepackage{lastpage}
+%\usepackage{multicol}
+\usepackage{fancyhdr}	% Para manejar los encabezados y pies de página
+\pagestyle{fancy}		% Contenido de los encabezados y pies de pagina\\
+\usepackage{multirow}
+\usepackage{bigstrut}
+\usepackage{listings}
+
+
+\lhead{IE0424 - Laboratorio de Digitales}
+\chead{}
+\rhead{Anteproyecto de Laboratorio 02}	% Aquí va el numero de experimento, al igual que en el titulo
+\lfoot{Escuela de Ingeniería Eléctrica}
+\cfoot{\thepage\ de \pageref{LastPage}}
+\rfoot{Universidad de Costa Rica}
+
+\author{JeanCarlos Chavarr\' ia Hughes\\ \small{Jorge Blanco Garita}\\ \small{Carolina Vargas Basilio}\\ \small{Alejandro Masis Castillo}\\ \textbf{Profesor: Diego Valverde}}
+
+\title{\textsc{Universidad de Costa Rica}\\[0.2cm]{\small \textsc{Facultad de Ingenier\' ia}\\[0.5cm] \textsc{Escuela de Ingenier\' a El\' ectrica}\\ \textsc{Laboratorio de Circuitos Digitales}}\\ \textsc{II ciclo 2014}\\ \vspace*{0.55in} Fast Fourier Transform Calculator}
+%\date{}  				
+
+%%%%%%%%%%%%%%%%
+\begin{document}	% Inicio del documento
+%%%%%%%%%%%%%%%%
+
+\pdfbookmark[1]{Portada}{portada} 	% Marcador para el título
+
+\maketitle							% Título
+\tableofcontents
+\newpage
+\listoffigures
+
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%
+\section{Objectives}
+
+
+\subsection{General Objective}
+Implementation of Fast Fourier Transform Calculator in an FPGA.
+
+\subsection{Specific Objectives}
+\begin{itemize}
+\item Research about methods to calculate the fft by hardware.
+\item Improve the hands on skills by computing several logic calculations at bit level.
+\end{itemize}
+
+\section{Introduction}
+
+
+%%%%%%%%%%%%%%%%%%%
+
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%
+\section{Body of Document}
+%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%
+\end{document}
+%%%%%%%%%%%%%%

@@ -1,0 +1,18 @@
+[*]
+[*] GTKWave Analyzer v3.3.58 (w)1999-2014 BSI
+[*] Wed Dec 17 05:20:10 2014
+[*]
+[dumpfile] "/home/black/Dropbox/Laboratorios de Digitales/ProyectoFinal/Sources/float_adder_testbench.vcd"
+[dumpfile_mtime] "Wed Dec 17 05:20:10 2014"
+[dumpfile_size] 722444288
+[savefile] "/home/black/Dropbox/Laboratorios de Digitales/ProyectoFinal/Sources/float_adder_testbench_vcd.gtkw"
+[timestart] 0
+[size] 1366 744
+[pos] -1 -1
+*0.000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 223
+[signals_width] 78
+[sst_expanded] 1
+[sst_vpaned_height] 203
+[pattern_trace] 1
+[pattern_trace] 0

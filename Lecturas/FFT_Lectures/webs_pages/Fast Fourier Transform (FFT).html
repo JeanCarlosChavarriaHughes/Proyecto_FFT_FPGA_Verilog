@@ -1,0 +1,549 @@
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=Big5">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>Fast Fourier Transform (FFT)</title>
+<meta name="Microsoft Theme" content="indust 111, default"></head>
+
+<body bgcolor="#FFFFFF" alink="#FF3300" background="Fast%20Fourier%20Transform%20(FFT)_archivos/indtextb.jpg" link="#3366CC" text="#000000" vlink="#666666">
+
+<p align="center">　</p>
+
+<p align="center"><font face="Times New Roman" size="6"><strong>Fast
+Fourier Transform (FFT)</strong></font></p>
+
+<p>　</p>
+
+<p><font face="Times New Roman" size="3">In this section we
+present several methods for computing the DFT efficiently. In
+view of the importance of the DFT in various digital signal
+processing applications, such as linear filtering, correlation
+analysis, and spectrum analysis, its efficient computation is a
+topic that has received considerable attention by many
+mathematicians, engineers, and applied scientists.</font></p>
+
+<p><font face="Times New Roman" size="3">From this point, we
+change the notation that <em>X(k)</em>, instead of <em>y(k)</em>
+in previous sections, represents the Fourier coefficients of<em>
+x(n)</em>.</font></p>
+
+<p><font face="Times New Roman" size="3">Basically, the
+computational problem for the DFT is to compute the sequence {<em>X</em>(<em>k</em>)}
+of <em>N</em> complex-valued numbers given another sequence of
+data {<em>x</em>(<em>n</em>)} of length <em>N</em>, according to
+the formula</font></p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image39.gif" height="72" width="253"></p>
+
+<p><font face="Times New Roman" size="3">In general, the data
+sequence <em>x</em>(<em>n</em>) is also assumed to be complex
+valued. Similarly, The IDFT becomes</font></p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image40.gif" height="45" width="276"></p>
+
+<p><font face="Times New Roman" size="3">Since DFT and IDFT
+involve basically the same type of computations, our discussion
+of efficient computational algorithms for the DFT applies as well
+to the efficient computation of the IDFT.</font></p>
+
+<p><font face="Times New Roman" size="3">We observe that for each
+value of <em>k</em>, direct computation of <em>X</em>(<em>k</em>)
+involves <em>N</em> complex multiplications (4<em>N</em> real
+multiplications) and <em>N</em>-1 complex additions (4<em>N</em>-2
+real additions). Consequently, to compute all <em>N</em> values
+of the DFT requires <em>N</em><sup> 2</sup> complex
+multiplications and <em>N</em><sup> 2</sup>-<em>N</em> complex
+additions.</font></p>
+
+<p><font face="Times New Roman" size="3">Direct computation of
+the DFT is basically inefficient primarily because it does not
+exploit the symmetry and periodicity properties of the phase
+factor W<sub>N</sub>. In particular, these two properties are : </font></p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image34.gif" height="50" width="231"></p>
+
+<p><font face="Times New Roman">The computationally efficient
+algorithms described in this sectio, known collectively as fast
+Fourier transform (FFT) algorithms, exploit these two basic
+properties of the phase factor.</font></p>
+
+<p>　</p>
+
+<p><font face="Times New Roman" size="4"><strong>Radix-2 FFT
+Algorithms</strong></font></p>
+
+<p><font face="Times New Roman">Let us consider the computation
+of the <em>N</em> = 2<sup>v</sup> point DFT by the divide-and
+conquer approach. We split the <em>N</em>-point data sequence
+into two <em>N</em>/2-point data sequences <em>f</em><sub>1</sub>(<em>n</em>)
+and <em>f</em><sub>2</sub>(<em>n</em>), corresponding to the
+even-numbered and odd-numbered samples of <em>x</em>(<em>n</em>),
+respectively, that is,</font></p>
+
+<p align="center"><font face="Times New Roman"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image35.gif" height="56" width="257"></font></p>
+
+<p><font face="Times New Roman">Thus <em>f</em><sub>1</sub>(<em>n</em>)
+and <em>f</em><sub>2</sub>(<em>n</em>) are obtained by decimating
+<em>x</em>(<em>n</em>) by a factor of 2, and hence the resulting
+FFT algorithm is called a <em>decimation-in-time algorithm</em>.</font></p>
+
+<p><font face="Times New Roman">Now the N-point DFT can be
+expressed in terms of the DFT's of the decimated sequences as
+follows:</font></p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image41.gif" height="130" width="316"></p>
+
+<p><font face="Times New Roman">But <em>W</em><sub><em>N</em></sub><sup><em>2</em></sup><em>
+= W</em><sub><em>N/2</em></sub>. With this substitution, the
+equation can be expressed as</font></p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image42.gif" height="72" width="297"></p>
+
+<p><font face="Times New Roman">where <em>F</em><sub>1</sub>(<em>k</em>)
+and <em>F</em><sub>2</sub>(<em>k</em>) are the <em>N</em>/2-point
+DFTs of the sequences <em>f</em><sub>1</sub>(<em>m</em>) and <em>f</em><sub>2</sub>(<em>m</em>),
+respectively.</font></p>
+
+<p><font face="Times New Roman">Since <em>F</em><sub>1</sub>(<em>k</em>)
+and <em>F</em><sub>2</sub>(<em>k</em>) are periodic, with period<em>
+N</em>/2, we have <em>F</em><sub>1</sub>(<em>k+N/2</em>)<em> = F</em><sub>1</sub>(<em>k</em>)
+and <em>F</em><sub>2</sub>(<em>k+N/2</em>) = <em>F</em><sub>2</sub>(<em>k</em>).
+In addition, the factor <em>W</em><sub><em>N</em></sub><sup><em>k+N/2</em></sup><em>
+= -W</em><sub><em>N</em></sub><sup><em>k</em></sup><em>. </em>Hence
+the equation may be expressed as</font></p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image43.gif" height="85" width="331"></p>
+
+<p><font face="Times New Roman">We observe that the direct
+computation of <em>F</em><sub>1</sub>(<em>k</em>) requires (<em>N</em>/2)<sup>2</sup>
+complex multiplications. The same applies to the computation of <em>F</em><sub>2</sub>(<em>k</em>).
+Furthermore, there are <em>N</em>/2 additional complex
+multiplications required to compute <em>W</em><sub><em>N</em></sub><sup><em>k</em></sup><em>F</em><sub>2</sub>(<em>k</em>).
+Hence the computation of <em>X</em>(<em>k</em>) requires 2(<em>N</em>/2)<sup>2</sup>
++ <em>N</em>/2 = <em>N </em><sup>2</sup>/2 + <em>N</em>/2 complex
+multiplications. This first step results in a reduction of the
+number of multiplications from <em>N</em><sup> 2 </sup>to <em>N </em><sup>2</sup>/2
++ <em>N</em>/2, which is about a factor of 2 for <em>N</em>
+large.</font></p>
+
+<p align="center"><font face="Times New Roman"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure6.gif" height="425" width="799"></font></p>
+
+<p align="center"><font face="Times New Roman"><strong>Figure
+TC.3.1 </strong>First step in the decimation-in-time algorithm.</font></p>
+
+<p>　</p>
+
+<p><font face="Times New Roman">By computing <em>N</em>/4-point
+DFTs, we would obtain the <em>N</em>/2-point DFTs <em>F</em><sub>1</sub>(<em>k</em>)
+and <em>F</em><sub>2</sub>(<em>k</em>) from the relations</font></p>
+
+<p align="center"><font face="Times New Roman"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image44.gif" height="202" width="564"></font></p>
+
+<p><font face="Times New Roman">The decimation of the data
+sequence can be repeated again and again until the resulting
+sequences are reduced to one-point sequences. For <em>N</em> = 2<sup>v</sup>,
+this decimation can be performed v = log<sub>2</sub><em>N</em>
+times. Thus the total number of complex multiplications is
+reduced to (<em>N</em>/2)log<sub>2</sub><em>N</em>. The number of
+complex additions is <em>N</em>log<sub>2</sub><em>N</em>.</font></p>
+
+<p><font face="Times New Roman">For illustrative purposes, Figure
+TC.3.2 depicts the computation of <em>N</em> = 8 point DFT. We
+observe that the computation is performed in tree stages,
+beginning with the computations of four two-point DFTs, then two
+four-point DFTs, and finally, one eight-point DFT. The
+combination for the smaller DFTs to form the larger DFT is
+illustrated in Figure TC.3.3 for <em>N</em> = 8.</font></p>
+
+<p align="center"><font face="Times New Roman"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure7.gif" height="308" width="704"></font></p>
+
+<p align="center"><font face="Times New Roman"><strong>Figure
+TC.3.2 </strong>Three stages in the computation of an <em>N</em>
+= 8-point DFT.</font></p>
+
+<p>　</p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure8.gif" height="609" width="755"></p>
+
+<p align="center"><font color="#000000" face="Times New Roman"><strong>Figure
+TC.3.3 </strong>Eight-point decimation-in-time FFT algorithm.</font></p>
+
+<p>　</p>
+
+<p align="center"><font color="#000000"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure9.gif" height="120" width="396"></font></p>
+
+<p align="center"><font color="#000000" face="Times New Roman"><strong>Figure
+TC.3.4 </strong>Basic butterfly computation in the
+decimation-in-time FFT algorithm.</font></p>
+
+<p>　</p>
+
+<p><font color="#000000" face="Times New Roman">An important
+observation is concerned with the order of the input data
+sequence after it is decimated (v-1) times. For example, if we
+consider the case where N = 8, we know that the first decimation
+yeilds the sequence <em>x(0), x(2), x(4), x(6), x(1), x(3), x(5),
+x(7), </em>and the second decimation results in the sequence <em>x(0),
+x(4), x(2), x(6), x(1), x(5), x(3), x(7).</em> This <em>shuffling</em>
+of the input data sequence has a well-defined order as can be
+ascertained from observing Figure TC.3.5, which illustrates the
+decimation of the eight-point sequence.</font></p>
+
+<p>　</p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure10.gif" height="714" width="612"></p>
+
+<p align="center"><font face="Times New Roman"><strong>Figure
+TC.3.5 </strong>Shuffling of the data and bit reversal.</font></p>
+
+<p align="center">　</p>
+
+<p><font face="Times New Roman">Another important radix-2 FFT
+algorithm, called the decimation-in-frequency algorithm, is
+obtained by using the divide-and-conquer approach. To derive the
+algorithm, we begin by splitting the DFT formula into two
+summations, one of which involves the sum over the first <em>N</em>/2
+data points and the second sum involves the last N/2 data points.
+Thus we obtain</font></p>
+
+<p align="center"><font face="Times New Roman"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image45.gif" height="218" width="330"></font></p>
+
+<p><font face="Times New Roman">Now, let us split (decimate) X(k)
+into the even- and odd-numbered samples. Thus we obtain</font></p>
+
+<p align="center"><font face="Times New Roman"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image46.gif" height="101" width="393"></font></p>
+
+<p><font face="Times New Roman">where we have used the fact that <em>W</em><sub><em>N</em></sub><sup><em>2</em></sup><em>
+= W</em><sub><em>N/2</em></sub></font></p>
+
+<p><font face="Times New Roman" size="3">The computational
+procedure above can be repeated through decimation of the <em>N</em>/2-point
+DFTs <em>X</em>(2<em>k</em>) and <em>X</em>(2<em>k</em>+1). The
+entire process involves v = log<sub>2</sub><em>N</em> stages of
+decimation, where each stage involves <em>N</em>/2 butterflies of
+the type shown in Figure TC.3.7. Consequently, the computation of
+the N-point DFT via the decimation-in-frequency FFT requires (<em>N</em>/2)log<sub>2</sub>N
+complex multiplications and <em>N</em>log<sub>2</sub><em>N</em>
+complex additions, just as in the decimation-in-time algorithm.
+For illustrative purposes, the eight-point
+decimation-in-frequency algorithm is given in Figure TC.3.8.</font></p>
+
+<p>　</p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure11.gif" height="601" width="513"></p>
+
+<p align="center"><font face="Times New Roman"><strong>Figure
+TC.3.6</strong> First stage of the decimation-in-frequency FFT
+algorithm.</font></p>
+
+<p align="center">　</p>
+
+<p align="center">　</p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure12.gif" height="110" width="428"></p>
+
+<p align="center"><font face="Times New Roman"><strong>Figure
+TC.3.7 </strong>Basic butterfly computation in the
+decimation-in-frequency.</font></p>
+
+<p align="center">　</p>
+
+<p align="center">　</p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure13.gif" height="576" width="784"></p>
+
+<p align="center"><font face="Times New Roman"><strong>Figure
+TC.3.8 </strong><em>N</em> = 8-piont decimation-in-frequency FFT
+algorithm.</font></p>
+
+<p>　</p>
+
+<p><font face="Times New Roman">We observe from Figure TC.3.8
+that the input data <em>x</em>(<em>n</em>) occurs in natural
+order, but the output DFT occurs in bit-reversed order. We also
+note that the computations are performed in place. However, it is
+possible to reconfigure the decimation-in-frequency algorithm so
+that the input sequence occurs in bit-reversed order while the
+output DFT occurs in normal order. Furthermore, if we abandon the
+requirement that the computations be done in place, it is also
+possible to have both the input data and the output DFT in normal
+order.</font></p>
+
+<p>　</p>
+
+<p><font face="Times New Roman" size="4"><strong>Radix-4 FFT
+Algorithm</strong></font></p>
+
+<p><font face="Times New Roman" size="3">When the number of data
+points <em>N</em> in the DFT is a power of 4 (i.e., <em>N</em> =
+4<sup>v</sup>), we can, of course, always use a radix-2 algorithm
+for the computation. However, for this case, it is more efficient
+computationally to employ a radix-r FFT algorithm.</font></p>
+
+<p><font face="Times New Roman" size="3">Let us begin by
+describing a radix-4 decimation-in-time FFT algorithm briefly. We
+split or decimate the <em>N</em>-point input sequence into four
+subsequences, <em>x</em>(4<em>n</em>), <em>x</em>(4<em>n</em>+1),
+<em>x</em>(4<em>n</em>+2), <em>x</em>(4<em>n</em>+3), <em>n</em>
+= 0, 1, ... , <em>N</em>/4-1. </font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image47.gif" height="250" width="286"></font></p>
+
+<p><font face="Times New Roman" size="3">Thus the four <em>N</em>/4-point
+DFTs <em>F</em>(<em>l, q</em>)obtained from the above equation
+are combined to yield the N-point DFT. The expression for
+combining the <em>N</em>/4-point DFTs defines a radix-4
+decimation-in-time butterfly, which can be expressed in matrix
+form as </font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image48.gif" height="98" width="290"></font></p>
+
+<p><font face="Times New Roman" size="3">The radix-4 butterfly is
+depicted in Figure TC.3.9a and in a more compact form in Figure
+TC.3.9b. Note that each butterfly involves three complex
+multiplications, since <em>W</em><sub><em>N</em></sub><sup><em>0</em></sup>
+= 1, and 12 complex additions.</font></p>
+
+<p align="center">　</p>
+
+<p align="center"><font size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure14.gif" height="506" width="788"></font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><strong>Figure
+TC.3.9 </strong>Basic butterfly computation in a radix-4 FFT
+algorithm.</font></p>
+
+<p align="center">　</p>
+
+<p><font face="Times New Roman" size="3">By performing the
+additions in two steps, it is possible to reduce the number of
+additions per butterfly from 12 to 8. This can be accomplished ty
+expressing the matrix of the linear transformation mentioned
+previously as a product of two matrices as follows:</font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image49.gif" height="98" width="384"></font></p>
+
+<p align="center">　</p>
+
+<p align="center"><font size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure15.gif" height="564" width="707"></font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><strong>Figure
+TC.3.10 </strong>Sixteen-point radix-4 decimation-in-time
+algorithm with input in normal order and output in digit-reversed
+order</font></p>
+
+<p align="center">　</p>
+
+<p><font face="Times New Roman" size="3">A 16-point, radix-4
+decimation-in-frequency FFT algorithm is shown in Figure TC.3.11.
+Its input is in normal order and its output is in digit-reversed
+order. It has exactly the same computational complexity as the
+decimation-in-time radex-4 FFT algorithm.</font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure16.gif" height="542" width="700"></font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><strong>Figure
+TC.3.11 </strong>Sixteen-point, radix-4 decimation-in-frequency
+algorithm with input in normal order and output in digit-reversed
+order.</font></p>
+
+<p>　</p>
+
+<p><font face="Times New Roman" size="3">For illustrative
+purposes, let us re-derive the radix-4 decimation-in-frequency
+algorithm by breaking the <em>N</em>-point DFT formula into four
+smaller DFTs. We have</font></p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image54.gif" height="186" width="440"></p>
+
+<p><font face="Times New Roman">From the definition of the
+twiddle factors, we have</font></p>
+
+<p align="center"><font face="Times New Roman"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image55.gif" height="122" width="502"></font></p>
+
+<p><font face="Times New Roman">The relation is not an <em>N</em>/4-point
+DFT because the twiddle factor depends on N and not on <em>N</em>/4.
+To convert it into an <em>N</em>/4-point DFT we subdivede the DFT
+sequence into four <em>N</em>/4-point subsequences, <em>X</em>(4<em>k</em>),
+<em>X</em>(4<em>k</em>+1), <em>X</em>(4<em>k</em>+2), and <em>X</em>(4<em>k</em>+3),
+<em>k</em> = 0, 1, ..., <em>N</em>/4. Thus we obtain the radix-4
+decimation-in frequency DFT as </font></p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image56.gif" height="197" width="471"></p>
+
+<p><font face="Times New Roman">where we have used the property <em>W</em><sub><em>N</em></sub><sup>4<em>kn</em></sup><em>
+= W</em><sup><em>kn</em></sup><sub><em>N/</em>4</sub><em>. </em>Note
+that the input to each <em>N</em>/4-point DFT is a linear
+combination of four signal samples scaled by a twiddle factor.
+This procedure is repeated v times, where v = log<sub>4</sub><em>N</em>.</font></p>
+
+<p align="center">　</p>
+
+<p>　</p>
+
+<p><font face="Times New Roman" size="4"><strong>Split-Radix FFT
+Algorithms</strong></font></p>
+
+<p><font face="Times New Roman" size="3">An inspection of the
+radix-2 decimation-in-frequency flowgraph shown in Figure TC.3.8
+indicates that the even-numbered pints of the DFT can be computed
+independently of the odd-numbered points. This suggests teh
+possibility of using different computational methods for
+independent parts of the algorithm, with the objective of
+reducing the number of computations. The split-radix FFT (SRFFT)
+algorithms exploit this idea by using both a radix-2 and a
+radix-4 decomposition in the same FFT algorithm.</font></p>
+
+<p><font face="Times New Roman" size="3">First, we recall that in
+the radix-2 decimation-in-frequency FFT algorithm, the
+even-numbered samples of the <em>N</em>-point DFT are given as</font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image50.gif" height="48" width="384"></font></p>
+
+<p><font face="Times New Roman" size="3">A radix-2 suffices for
+this computation.</font></p>
+
+<p><font face="Times New Roman" size="3">The odd-numbered samples
+{<em>X</em>(2<em>k</em>+1)} of the DFT require the
+pre-multiplication of the input sequence with the twiddle factors
+W<sub>N</sub><sup>n</sup>. For these samples a radix-4
+decomposition produces some computational efficiency because the
+four-point DFT has the largest multiplication-free butterfly.
+Indeed, it can be shown that using a radix greater than 4 does
+not result in a significant reduction in computational
+complexity.</font></p>
+
+<p><font face="Times New Roman" size="3">If we use a radix-4
+decimation-in-frequency FFT algorithm for the odd-numbered
+samples of the <em>N</em>-point DFT, we obtain the following <em>N</em>/4-point
+DFTs:</font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/image51.gif" height="104" width="499"></font></p>
+
+<p><font face="Times New Roman" size="3">Figure TC.3.12 shows the
+flow graph for an in-place 32-point decimation-in-frequency SFFT
+algorithm. </font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure17.gif" height="726" width="802"></font></p>
+
+<p align="center"><font face="Times New Roman" size="3"><strong>Figure
+TC.3.12 </strong>Length 23 split-radix FFT algorithms from paper
+by Duhamel (1986); reprinted with permission from the IEEE</font></p>
+
+<p>　</p>
+
+<p>　</p>
+
+<p align="center"><img src="Fast%20Fourier%20Transform%20%28FFT%29_archivos/figure18.gif" height="341" width="616"></p>
+
+<p align="center"><font face="Times New Roman"><strong>Figure
+TC.3.13 </strong>Butterfly for SRFFT algorithm.</font></p>
+
+<p>　</p>
+
+<p>　</p>
+<div align="center"><center>
+
+<table bordercolordark="#000066" bordercolorlight="#FF9933" border="3">
+    <tbody><tr>
+        <td align="center">　</td>
+        <td colspan="4" align="center"><font face="Times New Roman"><strong>Real Multiplications</strong></font></td>
+        <td colspan="4" align="center"><font face="Times New Roman"><strong>Real Additions</strong></font></td>
+    </tr>
+    <tr>
+        <td align="center"><font face="Times New Roman"><em><strong>N</strong></em></font></td>
+        <td align="center"><font face="Times New Roman"><strong>Radix-2</strong></font></td>
+        <td align="center"><font face="Times New Roman"><strong>Radix-4</strong></font></td>
+        <td align="center"><font face="Times New Roman"><strong>Radix-8</strong></font></td>
+        <td align="center"><font face="Times New Roman"><strong>Split
+        Radix</strong></font></td>
+        <td align="center"><font face="Times New Roman"><strong>Radix-2</strong></font></td>
+        <td align="center"><font face="Times New Roman"><strong>Radix-4</strong></font></td>
+        <td align="center"><font face="Times New Roman"><strong>Radix-8</strong></font></td>
+        <td align="center"><font face="Times New Roman"><strong>Split
+        Radix</strong></font></td>
+    </tr>
+    <tr>
+        <td align="right"><font face="Times New Roman">16</font></td>
+        <td align="right"><font face="Times New Roman">24</font></td>
+        <td align="right"><font face="Times New Roman">20</font></td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">20</font></td>
+        <td align="right"><font face="Times New Roman">152</font></td>
+        <td align="right"><font face="Times New Roman">148</font></td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">148</font></td>
+    </tr>
+    <tr>
+        <td align="right"><font face="Times New Roman">32</font></td>
+        <td align="right"><font face="Times New Roman">88</font></td>
+        <td align="right">　</td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">68</font></td>
+        <td align="right"><font face="Times New Roman">408</font></td>
+        <td align="right">　</td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">388</font></td>
+    </tr>
+    <tr>
+        <td align="right"><font face="Times New Roman">64</font></td>
+        <td align="right"><font face="Times New Roman">264</font></td>
+        <td align="right"><font face="Times New Roman">208</font></td>
+        <td align="right"><font face="Times New Roman">204</font></td>
+        <td align="right"><font face="Times New Roman">196</font></td>
+        <td align="right"><font face="Times New Roman">1032</font></td>
+        <td align="right"><font face="Times New Roman">976</font></td>
+        <td align="right"><font face="Times New Roman">972</font></td>
+        <td align="right"><font face="Times New Roman">964</font></td>
+    </tr>
+    <tr>
+        <td align="right"><font face="Times New Roman">128</font></td>
+        <td align="right"><font face="Times New Roman">72</font></td>
+        <td align="right">　</td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">516</font></td>
+        <td align="right"><font face="Times New Roman">2054</font></td>
+        <td align="right">　</td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">2308</font></td>
+    </tr>
+    <tr>
+        <td align="right"><font face="Times New Roman">256</font></td>
+        <td align="right"><font face="Times New Roman">1800</font></td>
+        <td align="right"><font face="Times New Roman">1392</font></td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">1284</font></td>
+        <td align="right"><font face="Times New Roman">5896</font></td>
+        <td align="right"><font face="Times New Roman">5488</font></td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">5380</font></td>
+    </tr>
+    <tr>
+        <td align="right"><font face="Times New Roman">512</font></td>
+        <td align="right"><font face="Times New Roman">4360</font></td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">3204</font></td>
+        <td align="right"><font face="Times New Roman">3076</font></td>
+        <td align="right"><font face="Times New Roman">13566</font></td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">12420</font></td>
+        <td align="right"><font face="Times New Roman">12292</font></td>
+    </tr>
+    <tr>
+        <td align="right"><font face="Times New Roman">1024</font></td>
+        <td align="right"><font face="Times New Roman">10248</font></td>
+        <td align="right"><font face="Times New Roman">7856</font></td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">7172</font></td>
+        <td align="right"><font face="Times New Roman">30728</font></td>
+        <td align="right"><font face="Times New Roman">28336</font></td>
+        <td align="right">　</td>
+        <td align="right"><font face="Times New Roman">27652</font></td>
+    </tr>
+</tbody></table>
+</center></div>
+
+<p align="center"><font face="Times New Roman"><strong>Table
+TC.3.1 </strong>Number of Nontrivial Real Multiplcations and
+Additions to Compute an <em>N</em>-point Complex DFT</font></p>
+
+
+</body></html>

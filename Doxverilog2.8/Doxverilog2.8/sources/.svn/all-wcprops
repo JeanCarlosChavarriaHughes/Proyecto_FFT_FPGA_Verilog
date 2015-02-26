@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources
+END
+VPreLex.l
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/VPreLex.l
+END
+VPreProc.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/VPreProc.cpp
+END
+VPreProc.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/VPreProc.h
+END
+verilogparser.y
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/verilogparser.y
+END
+VFileLine.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/VFileLine.cpp
+END
+verilogscanner.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/verilogscanner.cpp
+END
+VFileLine.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/VFileLine.h
+END
+verilogparser.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/verilogparser.cpp
+END
+VPreLex.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/VPreLex.cpp
+END
+verilogscanner.h
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/verilogscanner.h
+END
+verilogdocgen.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/verilogdocgen.cpp
+END
+verilogparser.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/verilogparser.hpp
+END
+verilogscanner.l
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/verilogscanner.l
+END
+VPreLex.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/VPreLex.h
+END
+verilogdocgen.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/repos/doxverilog/!svn/ver/75/trunk/doxverilog/Doxverilog2.8/sources/verilogdocgen.h
+END

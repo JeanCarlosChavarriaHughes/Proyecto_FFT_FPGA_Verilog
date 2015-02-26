@@ -1,0 +1,61 @@
+|  C:\USERS\JEANCARLOS\DROPBOX\LABORATORIOS DE DIGITALES\PROYECTOFINAL\CUADERNO BLACK\SQEMAC_TB.REG 
+|  StateBench(tm) regression file created by 
+|  Xilinx's StateBench 1.01 
+|  Sun Dec 07 17:39:03 2014 
+
+
+restart
+constraint set
+time_scale ns
+time_active 50
+time_inactive 50
+time_setup 15
+time_check 20
+powerup_to 0
+constraint use
+radix hex
+assign VAR0 2
+assign VAR1 1
+assign VAR2 fe
+assign VAR3 3
+assign VAR4 5
+assign VAR5 fc
+assign VAR6 0
+assign VAR7 2
+update
+sim 15
+|-----------------------
+| Clock: 0  Time: 15 ns
+sim 20
+checka L1 7
+checka L2 fc
+checka L3 fe
+checka L4 fd
+checka L5 fd
+checka L6 4
+checka L7 5
+checka L8 0
+checka M1Im 0
+checka M1R 5
+checka M2Im 2
+checka M2R fc
+checka M3Im 0
+checka M3R 8
+checka M4Im fd
+checka M4R fc
+checka M5Im 0
+checka M5R 2
+checka M6Im ff
+checka M6R 4
+checka M7Im 0
+checka M7R f7
+checka M8Im 0
+checka M8R 4
+checka NL3 1
+checka NL7 fa
+checka NVAR4 fa
+checka NVAR5 3
+checka NVAR6 ff
+checka NVAR7 fd
+sim 30
+sim 35

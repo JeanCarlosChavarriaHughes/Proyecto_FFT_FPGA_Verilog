@@ -1,0 +1,71 @@
+#! /usr/bin/vvp
+:ivl_version "0.9.7 " "(v0_9_7)";
+:vpi_time_precision + 0;
+:vpi_module "system";
+:vpi_module "v2005_math";
+:vpi_module "va_math";
+S_0x946b290 .scope module, "signed_adder_testbench" "signed_adder_testbench" 2 4;
+ .timescale 0 0;
+v0x948c860_0 .var "a", 7 0;
+v0x948c8c0_0 .var "b", 7 0;
+v0x948c930_0 .var "cin", 0 0;
+v0x948c9a0_0 .net "cout", 0 0, L_0x948ca80; 1 drivers
+v0x948ca10_0 .net "sum", 7 0, L_0x948cad0; 1 drivers
+S_0x946b140 .scope module, "S1" "signed_adder" 2 18, 3 2, S_0x946b290;
+ .timescale 0 0;
+P_0x948d84c .param/l "SIZE" 3 2, +C4<01000>;
+v0x948d3e0_0 .net *"_s10", 0 0, C4<0>; 1 drivers
+v0x948c180_0 .net *"_s11", 8 0, L_0x948cd50; 1 drivers
+v0x948c1e0_0 .net *"_s13", 8 0, L_0x948ce58; 1 drivers
+v0x948c240_0 .net *"_s16", 7 0, C4<00000000>; 1 drivers
+v0x948c2a8_0 .net *"_s17", 8 0, L_0x948cf40; 1 drivers
+v0x948c308_0 .net *"_s3", 8 0, L_0x948cb90; 1 drivers
+v0x948c388_0 .net *"_s6", 0 0, C4<0>; 1 drivers
+v0x948c3e8_0 .net *"_s7", 8 0, L_0x948cc50; 1 drivers
+v0x948c470_0 .net "a", 7 0, v0x948c860_0; 1 drivers
+v0x948c4d0_0 .net "b", 7 0, v0x948c8c0_0; 1 drivers
+v0x948c560_0 .net "cin", 0 0, v0x948c930_0; 1 drivers
+v0x948c5c0_0 .alias "cout", 0 0, v0x948c9a0_0;
+v0x948c658_0 .net "sa", 0 0, L_0x948d000; 1 drivers
+v0x948c6b8_0 .net "sb", 0 0, L_0x948d078; 1 drivers
+v0x948c758_0 .net "ssum", 0 0, L_0x948d0c8; 1 drivers
+v0x948c7b8_0 .alias "sum", 7 0, v0x948ca10_0;
+L_0x948ca80 .part L_0x948cf40, 8, 1;
+L_0x948cad0 .part L_0x948cf40, 0, 8;
+L_0x948cb90 .concat [ 8 1 0 0], v0x948c860_0, C4<0>;
+L_0x948cc50 .concat [ 8 1 0 0], v0x948c8c0_0, C4<0>;
+L_0x948cd50 .arith/sum 9, L_0x948cb90, L_0x948cc50;
+L_0x948ce58 .concat [ 1 8 0 0], v0x948c930_0, C4<00000000>;
+L_0x948cf40 .arith/sum 9, L_0x948cd50, L_0x948ce58;
+L_0x948d000 .part v0x948c860_0, 7, 1;
+L_0x948d078 .part v0x948c8c0_0, 7, 1;
+L_0x948d0c8 .part L_0x948cad0, 7, 1;
+    .scope S_0x946b290;
+T_0 ;
+    %movi 8, 222, 8;
+    %set/v v0x948c860_0, 8, 8;
+    %movi 8, 1, 8;
+    %set/v v0x948c8c0_0, 8, 8;
+    %set/v v0x948c930_0, 0, 1;
+    %vpi_call 2 26 "$display", "a=%h, b=%h, cin=%b", v0x948c860_0, v0x948c8c0_0, v0x948c930_0;
+    %end;
+    .thread T_0;
+    .scope S_0x946b290;
+T_1 ;
+    %delay 100, 0;
+    %vpi_call 2 30 "$finish";
+    %end;
+    .thread T_1;
+    .scope S_0x946b290;
+T_2 ;
+    %vpi_call 2 35 "$monitor", $time, "sum=%h, cout=%b, sum=%b", v0x948ca10_0, v0x948c9a0_0, v0x948ca10_0;
+    %vpi_call 2 36 "$dumpfile", "signed_adder_testbench.vcd";
+    %vpi_call 2 37 "$dumpvars";
+    %end;
+    .thread T_2;
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "signed_adder_testbench.v";
+    "./signed_adder.v";

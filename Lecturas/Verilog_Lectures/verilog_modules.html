@@ -1,0 +1,1093 @@
+<!DOCTYPE html PUBLIC "+//Silmaril//DTD HTML Pro v0r11 19970101//EN">
+<!-- Created by htmlize-0.49 in font mode. -->
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+    <title>l05.v</title>
+  </head>
+  <body bgcolor="#ffffff" text="#000000">
+    <pre><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">LSU EE 3755 -- Fall 2012 -- Computer Organization</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Verilog Notes 5 -- Integer Addition and Subtraction</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Time-stamp: &lt;10 September 2012, 10:22:08 CDT, koppel</span><span style="color:#b22222;font-size:10.0pt;">@eekopp-1.lsu.edu&gt;</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Contents</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Representation of Integers in Computers
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Binary Addition and Subtraction
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Construction of ALUs
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Carry Look Ahead Adders
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Flat Carry Look-Ahead Adder
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Two-Level Carry Look-Ahead Adder
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Real-World Integer Adders (Under Construction)
+</span>
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">References</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:Q:   <a href="http://www.ece.lsu.edu/v/refcard.pdf">Qualis, "Verilog HDL Quick Reference Card Revision 1.0"</a>
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:H:   <a href="http://hdlplanet.tripod.com/verilog/verilog-manual.html">Hyde, "Handbook on Verilog HDL"</a>
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:PH:  Patterson &amp; Hennessy, "Computer Organization &amp; Design"
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">//////////////////////////////////////////////////////////////////////////////
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Representation of Integers in Computers</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:PH: 4.1, 4.2
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Difference between real-world and computer integers:
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">Real-world integers don't have a maximum or minimum.
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">Computer integers do because they are represented by a fixed
+</span><span style="color:#b22222;font-size:10.0pt;">//    </span><span style="color:#b22222;font-size:10.0pt;">number of bits. (With a few exceptions.)
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">Keep this in mind for overflow and negative numbers.
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Two's Complement Representation</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Since the use of two's complement is nearly universal, "signed integer"
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">is usually understood to mean "two's complement signed integer."
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Let i be a positive integer.  The /n-bit two's complement representation/
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">of -i is obtained by:
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Start with the n-bit binary representation of i.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Invert the bits in i.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Add 1.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">In Verilog or C: minus i =  ~i + 1;
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Two's Complement Sign Bit</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A two's complement representation is negative if and only if the
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">most-significant bit is 1.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Not surprisingly, the MSB is called the /sign bit/.
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Example:  Find 4-bit representation of -5.</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Start:  +5 = 0101
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Invert:      1010
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Add 1:       1011
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">So -5 = 1011
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Range of Representation:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">(Smallest and largest representable numbers.)
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Unsigned n-bit range:
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Minimum: 0
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Maximum: (2^n)-1   Two-to-the-n minus 1.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Example: 4-bit: Minimum 0, maximum 15.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Signed 2's complement n-bit range:
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Minimum: -2^{n-1}
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Maximum: 2^{n-1}-1
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Example: 4-bit:  Minimum -8, maximum 7.
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Remember These 4-bit Signed Numbers:
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">0:  0000
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">-1:  1111
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">-2:  1110
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">-7:  1001
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">-8:  1000
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The module below negates its input.  Four methods are shown, only
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">the first should be used.  (The others are defined out using a
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">compiler directive, similar to the C "</span><span style="color:#b22222;font-size:10.0pt;">#define"</span><span style="color:#b22222;font-size:10.0pt;"> pre-processor
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">directive.)
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">negate</span>(minus_i,i);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [31:0] <span style="color:#b8860b;font-size:10.0pt;">i</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [31:0] <span style="color:#b8860b;font-size:10.0pt;">minus_i</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>        <span style="color:#000000;font-size:10.0pt;font-weight:bold;">minus_i </span>= -i;
+
+`<span style="color:#4169e1;font-size:10.0pt;font-style:italic;">ifdef</span> <span style="color:#000000;font-size:10.0pt;font-style:italic;">NOT_THE_WAY_TO_DO_IT</span>
+
+   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The methods below work but they are slightly less clear to a
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">human reader and waste hardware and time unless the synthesis
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">program realizes it's just negation.
+</span>
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>        <span style="color:#000000;font-size:10.0pt;font-weight:bold;">minus_i </span>= 0 - i;  <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">No advantage over unary -.
+</span>   <span style="color:#4169e1;font-size:10.0pt;">assign</span>        <span style="color:#000000;font-size:10.0pt;font-weight:bold;">minus_i </span>= ~i + 1; <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">No advantage over -.
+</span>   <span style="color:#4169e1;font-size:10.0pt;">assign</span>        <span style="color:#000000;font-size:10.0pt;font-weight:bold;">minus_i </span>= i * -1; <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Wastes hardware and time.
+</span>   <span style="color:#4169e1;font-size:10.0pt;">assign</span>        <span style="color:#000000;font-size:10.0pt;font-weight:bold;">minus_i </span>= i / -1; <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Wastes hardware and lots of time.
+</span>`<span style="color:#4169e1;font-size:10.0pt;font-style:italic;">endif</span>
+   
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">//////////////////////////////////////////////////////////////////////////////
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Binary Addition and Subtraction</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:PH: 4.3 and classroom lectures.
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">If necessary, review binary addition.
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Notes here discuss overflow.
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Overflow Definition</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Describes an arithmetic operation in which the result cannot
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">be represented.  The result might be too large or too small.
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Overflow Detection in Unsigned Addition</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">There is overflow in unsigned addition of two n-bit numbers
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">if there is a carry out (from the MSB).
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Example:
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Addition of 4-bit unsigned representations of 10 and 7:
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">1010
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">+0111
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">-----
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">10001
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">C
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The digit over the "C" is the carry out.  Since it is 1 the
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">addition overflowed.
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Overflow Detection in Signed Addition</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">There has been overflow in the addition of two n-bit two's complement
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">numbers when the sign of the two operands are the same and the sign
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">of the sum is different.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">This implies that there can not be overflow when the signs of the
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">two operands are different.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A carry out does not necessarily indicate overflow.
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Addition to 4-bit signed numbers.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">6:  0110   Sign of first operand: 0 (positive)
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">-2:  1110   Sign of second operand: 1 (negative)
+</span><span style="color:#b22222;font-size:10.0pt;">//     </span><span style="color:#b22222;font-size:10.0pt;">-----
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">4: 10100   Sign of sum: 0 (positive), sum correct
+</span><span style="color:#b22222;font-size:10.0pt;">//     </span><span style="color:#b22222;font-size:10.0pt;">CS
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The digit over the C is the carry out.  Since this is signed
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">addition, ignore it.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The sign of the two operands are different, so overflow is not possible.
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Addition to 4-bit signed numbers.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">6:  0110   Sign of first operand: 0 (positive)
+</span><span style="color:#b22222;font-size:10.0pt;">//  </span><span style="color:#b22222;font-size:10.0pt;">2:  0010   Sign of second operand: 0 (positive)
+</span><span style="color:#b22222;font-size:10.0pt;">//     </span><span style="color:#b22222;font-size:10.0pt;">-----
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">-8: 01000   Sign of sum: 1 (negative), addition overflowed so sum wrong.
+</span><span style="color:#b22222;font-size:10.0pt;">//     </span><span style="color:#b22222;font-size:10.0pt;">CS
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The digit over the C is the carry out.  In this case there is no
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">carry out, which is irrelevant since carry out is ignored.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The sign of the two operands are the same, 0, and is different than
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">the sign of the sum, 1, so there is overflow.
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Addition to 4-bit signed numbers.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">-6:  1010   Sign of first operand: 1 (negative)
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">-2:  1110   Sign of second operand: 1 (negative)
+</span><span style="color:#b22222;font-size:10.0pt;">//     </span><span style="color:#b22222;font-size:10.0pt;">-----
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">-8: 11000   Sign of sum: 1 (negative), no overflow, sum correct.
+</span><span style="color:#b22222;font-size:10.0pt;">//     </span><span style="color:#b22222;font-size:10.0pt;">CS
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The digit over the C is the carry out.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The sign of the two operands are the same, 1, and is the same as
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">the sign of the sum, 1, so there is no overflow.
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">An unsigned adder with an overflow output.  The overflow is the
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">fifth bit of the sum and is equivalent to the carry out.  (Carry
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">out and overflow are not equivalent for signed adders.)  In the
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">examples in this section the addition operator is used, in the
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">following sections of this set adders will be constructed from
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">primitive gates.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">unsigned_adder</span>(overflow,sum,a,b);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [7:0] <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [7:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span>       <span style="color:#b8860b;font-size:10.0pt;">overflow</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">{overflow,sum}</span> = a + b;
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A signed adder with an overflow output.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">signed_adder</span>(sum,overflow,a,b);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [7:0] <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [7:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span>       <span style="color:#b8860b;font-size:10.0pt;">overflow</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sum </span>= a + b;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sa </span>= a[7];
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sb </span>= b[7];
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">ssum </span>= sum[7];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">overflow </span>= sa != sb   ? 0 :
+                     sb == ssum ? 0 : 1;
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A signed adder in which the second input is half the size of
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">the first.  The adder needs to sign-extend the second input
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">before adding it.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">signed_adder2</span>(sum,overflow,a,b);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [7:0] <span style="color:#b8860b;font-size:10.0pt;">a</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [3:0] <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [7:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span>       <span style="color:#b8860b;font-size:10.0pt;">overflow</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sa </span>= a[7];
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sb </span>= b[3];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sum </span>= a + { sb ? <span style="color:#999999;font-size:10.0pt;">4'b</span>1111 : <span style="color:#999999;font-size:10.0pt;">4'b</span>0,   b };
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">ssum </span>= sum[7];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">overflow </span>= sa != sb   ? 0 :
+                     sb == ssum ? 0 : 1;
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">//////////////////////////////////////////////////////////////////////////////
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Construction of ALUs</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:PH: 4.5
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">/ALU/: The primary device in a computer for performing integer
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">arithmetic and logical operations.  [There may be other /functional
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">units/ that perform additional integer and also floating-point
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">operations.]
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Goal: Design ALU that can share as much hardware as possible.</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">First ALU below does not share much hardware.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">In the second ALU below adder is shared for addition, subtraction, and
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">less than.
+</span>
+
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">First ALU</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Specifications
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Perform bitwise AND, bitwise OR, and addition.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Two-bit input for operation, op.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Operation encoding: and (0), or (1), add (2)
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Step 1:
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Define a slice module that can perform any of the operations
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">(and, or, add) on two one-bit inputs and a carry.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Step 2:
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Connect the slices to construct the entire ALU.
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Slice for first alu.  See :PH: Figure 4.14
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">alu_slice</span>(result,cout,a,b,cin,op);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>, <span style="color:#b8860b;font-size:10.0pt;">cin</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [1:0] <span style="color:#b8860b;font-size:10.0pt;">op</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span>      <span style="color:#b8860b;font-size:10.0pt;">result</span>, <span style="color:#b8860b;font-size:10.0pt;">cout</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op_and </span>= 0;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op_or  </span>= 1;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op_add </span>= 2;
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa</span>(sum,cout,a,b,cin);
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">result </span>=
+          op == op_and ? a &amp; b :
+          op == op_or  ? a | b :
+          op == op_add ? sum   : 0;
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">ALU using slice above.  See :PH: Figure 4.15.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">alu</span>(result,a,b,cin,op);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [31:0] <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span>        <span style="color:#b8860b;font-size:10.0pt;">cin</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [1:0]  <span style="color:#b8860b;font-size:10.0pt;">op</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [31:0] <span style="color:#b8860b;font-size:10.0pt;">result</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [31:0]   <span style="color:#b8860b;font-size:10.0pt;">cout</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>          <span style="color:#b8860b;font-size:10.0pt;">co</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice0</span>(result[0],cout[0],a[0],b[0],<span style="color:#999999;font-size:10.0pt;">1'b</span>0,op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice1</span>(result[1],cout[1],a[1],b[1],cout[0],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice2</span>(result[2],cout[2],a[2],b[2],cout[1],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice3</span>(result[3],cout[3],a[3],b[3],cout[2],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice4</span>(result[4],cout[4],a[4],b[4],cout[3],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice5</span>(result[5],cout[5],a[5],b[5],cout[4],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice6</span>(result[6],cout[6],a[6],b[6],cout[5],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice7</span>(result[7],cout[7],a[7],b[7],cout[6],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice8</span>(result[8],cout[8],a[8],b[8],cout[7],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice9</span>(result[9],cout[9],a[9],b[9],cout[8],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice10</span>(result[10],cout[10],a[10],b[10],cout[9],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice11</span>(result[11],cout[11],a[11],b[11],cout[10],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice12</span>(result[12],cout[12],a[12],b[12],cout[11],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice13</span>(result[13],cout[13],a[13],b[13],cout[12],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice14</span>(result[14],cout[14],a[14],b[14],cout[13],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice15</span>(result[15],cout[15],a[15],b[15],cout[14],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice16</span>(result[16],cout[16],a[16],b[16],cout[15],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice17</span>(result[17],cout[17],a[17],b[17],cout[16],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice18</span>(result[18],cout[18],a[18],b[18],cout[17],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice19</span>(result[19],cout[19],a[19],b[19],cout[18],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice20</span>(result[20],cout[20],a[20],b[20],cout[19],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice21</span>(result[21],cout[21],a[21],b[21],cout[20],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice22</span>(result[22],cout[22],a[22],b[22],cout[21],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice23</span>(result[23],cout[23],a[23],b[23],cout[22],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice24</span>(result[24],cout[24],a[24],b[24],cout[23],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice25</span>(result[25],cout[25],a[25],b[25],cout[24],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice26</span>(result[26],cout[26],a[26],b[26],cout[25],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice27</span>(result[27],cout[27],a[27],b[27],cout[26],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice28</span>(result[28],cout[28],a[28],b[28],cout[27],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice29</span>(result[29],cout[29],a[29],b[29],cout[28],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice30</span>(result[30],cout[30],a[30],b[30],cout[29],op);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice31</span>(result[31],cout[31],a[31],b[31],cout[30],op);
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Second ALU</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">This ALU can perform additional operations: subtract and less than.
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Both subtract and less than use the adder's hardware.
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Slice for second ALU.  See :PH: Figure 4.16.  Input less is
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">generated by MSB slice, alu_slice2MSB for bit zero and 0 for all
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">the others.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">alu_slice2</span>(result,cout,a,b,cin,op,binvert,less);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>, <span style="color:#b8860b;font-size:10.0pt;">cin</span>, <span style="color:#b8860b;font-size:10.0pt;">binvert</span>, <span style="color:#b8860b;font-size:10.0pt;">less</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [1:0] <span style="color:#b8860b;font-size:10.0pt;">op</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span>      <span style="color:#b8860b;font-size:10.0pt;">result</span>, <span style="color:#b8860b;font-size:10.0pt;">cout</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_and </span>= 0;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_or  </span>= 1;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_add </span>= 2;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_slt </span>= 3;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>        <span style="color:#000000;font-size:10.0pt;font-weight:bold;">b2 </span>= binvert ? ~b : b;
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>        <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa</span>(sum,cout,a,b2,cin);
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">result </span>=
+          op == sop_and ? a &amp; b :
+          op == sop_or  ? a | b :
+          op == sop_add ? sum :
+          less; <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">else, op == sop_slt
+</span>
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Bit slice for bit 31.  This also generates a set and overflow
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">output.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">alu_slice2MSB</span>(result,set,overflow,a,b,cin,op,binvert,less);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>, <span style="color:#b8860b;font-size:10.0pt;">cin</span>, <span style="color:#b8860b;font-size:10.0pt;">binvert</span>, <span style="color:#b8860b;font-size:10.0pt;">less</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> <span style="color:#b8860b;font-size:10.0pt;">set</span>, <span style="color:#b8860b;font-size:10.0pt;">overflow</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [1:0] <span style="color:#b8860b;font-size:10.0pt;">op</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span>      <span style="color:#b8860b;font-size:10.0pt;">result</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_and </span>= 0;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_or  </span>= 1;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_add </span>= 2;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>   <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_slt </span>= 3;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>        <span style="color:#000000;font-size:10.0pt;font-weight:bold;">b2 </span>= binvert ? ~b : b;
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>        <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">overflow </span>=
+          op != sop_add ? <span style="color:#999999;font-size:10.0pt;">1'b</span>0 :
+          a != b2       ? <span style="color:#999999;font-size:10.0pt;">1'b</span>0 :
+          a == sum      ? <span style="color:#999999;font-size:10.0pt;">1'b</span>0 : <span style="color:#999999;font-size:10.0pt;">1'b</span>1;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">set </span>= a != b2 ? sum : a;
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa</span>(sum,cout,a,b2,cin);
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">result </span>=
+          op == sop_and ? a &amp; b :
+          op == sop_or  ? a | b :
+          op == sop_add ? sum :
+          less; <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">else, op == sop_slt
+</span>
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Second ALU.  The same module is used for bits 0-30, bit 31
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">is computed by a special module that also determines overflow
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">and whether a &lt; b.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">alu2</span>(result,overflow,a,b,alu_op);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [31:0] <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [2:0]  <span style="color:#b8860b;font-size:10.0pt;">alu_op</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [31:0] <span style="color:#b8860b;font-size:10.0pt;">result</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span>        <span style="color:#b8860b;font-size:10.0pt;">overflow</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [31:0]   <span style="color:#b8860b;font-size:10.0pt;">cout</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op_and </span>= 0;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op_or  </span>= 1;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op_slt </span>= 2;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op_add </span>= 3;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op_sub </span>= 4;
+
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_and </span>= 0;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_or  </span>= 1;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_add </span>= 2;
+   <span style="color:#4169e1;font-size:10.0pt;">parameter</span>     <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sop_slt </span>= 3;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [1:0] <span style="color:#000000;font-size:10.0pt;font-weight:bold;">op </span>=
+              alu_op == op_and ? sop_and :
+              alu_op == op_or  ? sop_or  :
+              alu_op == op_slt ? sop_slt :
+              alu_op == op_add ? sop_add :
+              alu_op == op_sub ? sop_add : 0;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">binvert </span>= alu_op == op_sub || alu_op == op_slt;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>       <span style="color:#b8860b;font-size:10.0pt;">set</span>;  <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">MSB of sum.
+</span>
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice0</span>(result[0],cout[0],a[0],b[0],binvert,op,binvert,set);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice1</span>(result[1],cout[1],a[1],b[1],cout[0],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice2</span>(result[2],cout[2],a[2],b[2],cout[1],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice3</span>(result[3],cout[3],a[3],b[3],cout[2],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice4</span>(result[4],cout[4],a[4],b[4],cout[3],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice5</span>(result[5],cout[5],a[5],b[5],cout[4],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice6</span>(result[6],cout[6],a[6],b[6],cout[5],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice7</span>(result[7],cout[7],a[7],b[7],cout[6],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice8</span>(result[8],cout[8],a[8],b[8],cout[7],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice9</span>(result[9],cout[9],a[9],b[9],cout[8],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice10</span>(result[10],cout[10],a[10],b[10],cout[9],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice11</span>(result[11],cout[11],a[11],b[11],cout[10],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice12</span>(result[12],cout[12],a[12],b[12],cout[11],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice13</span>(result[13],cout[13],a[13],b[13],cout[12],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice14</span>(result[14],cout[14],a[14],b[14],cout[13],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice15</span>(result[15],cout[15],a[15],b[15],cout[14],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice16</span>(result[16],cout[16],a[16],b[16],cout[15],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice17</span>(result[17],cout[17],a[17],b[17],cout[16],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice18</span>(result[18],cout[18],a[18],b[18],cout[17],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice19</span>(result[19],cout[19],a[19],b[19],cout[18],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice20</span>(result[20],cout[20],a[20],b[20],cout[19],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice21</span>(result[21],cout[21],a[21],b[21],cout[20],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice22</span>(result[22],cout[22],a[22],b[22],cout[21],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice23</span>(result[23],cout[23],a[23],b[23],cout[22],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice24</span>(result[24],cout[24],a[24],b[24],cout[23],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice25</span>(result[25],cout[25],a[25],b[25],cout[24],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice26</span>(result[26],cout[26],a[26],b[26],cout[25],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice27</span>(result[27],cout[27],a[27],b[27],cout[26],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice28</span>(result[28],cout[28],a[28],b[28],cout[27],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice29</span>(result[29],cout[29],a[29],b[29],cout[28],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice30</span>(result[30],cout[30],a[30],b[30],cout[29],op,binvert,<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu_slice2MSB</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">slice31</span>(result[31],set,overflow,a[31],b[31],
+                         cout[30],op,binvert, <span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Testbench for second ALU.  Material for this testbench not covered.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">test_alu</span>();
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [31:0] <span style="color:#b8860b;font-size:10.0pt;">result</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span>        <span style="color:#b8860b;font-size:10.0pt;">overflow</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">reg</span> [31:0]  <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">reg</span> [2:0]   <span style="color:#b8860b;font-size:10.0pt;">alu_op</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">alu2</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">alu</span>(result,overflow,a,b,alu_op);
+
+   <span style="color:#a020f0;font-size:10.0pt;">integer</span>     <span style="color:#b8860b;font-size:10.0pt;">i</span>, <span style="color:#b8860b;font-size:10.0pt;">shadow_result</span>, <span style="color:#b8860b;font-size:10.0pt;">shadow_overflow</span>, <span style="color:#b8860b;font-size:10.0pt;">as</span>, <span style="color:#b8860b;font-size:10.0pt;">bs</span>;
+
+   <span style="color:#000080;font-size:10.0pt;">initial</span> <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+
+      alu_op = alu.op_sub;
+
+      <span style="color:#4169e1;font-size:10.0pt;">for</span>(i=0; i&lt;10000; i=i+1) <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+
+         as = <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$random</span>;
+         a = as;
+         bs = <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$random</span>;
+         b = bs;
+
+         alu_op = ( <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$random</span> &amp; <span style="color:#999999;font-size:10.0pt;">32'h</span><span style="color:#008b8b;font-size:10.0pt;">7fff</span>ffff ) % 5;
+
+         <span style="color:#4169e1;font-size:10.0pt;">case</span>( alu_op )
+           alu.op_and:
+             <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+                shadow_result = as &amp; bs;
+                shadow_overflow = 0;
+             <span style="color:#0000cd;font-size:10.0pt;">end</span>
+           alu.op_or:
+             <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+                shadow_result = as | bs;
+                shadow_overflow = 0;
+             <span style="color:#0000cd;font-size:10.0pt;">end</span>
+           alu.op_add:
+             <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+                shadow_result = as + bs;
+                shadow_overflow = as &gt; 0 &amp;&amp; bs &gt; 0 &amp;&amp; shadow_result &lt; 0
+                                  || as &lt; 0 &amp;&amp; bs &lt; 0 &amp;&amp; shadow_result &gt; 0;
+             <span style="color:#0000cd;font-size:10.0pt;">end</span>
+           alu.op_sub:
+             <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+                shadow_result = as - bs;
+                shadow_overflow = as &gt; 0 &amp;&amp; bs &lt; 0 &amp;&amp; shadow_result &lt; 0
+                                  || as &lt; 0 &amp;&amp; bs &gt; 0 &amp;&amp; shadow_result &gt; 0;
+             <span style="color:#0000cd;font-size:10.0pt;">end</span>
+           alu.op_slt:
+             <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+                shadow_result = as &lt; bs;
+                shadow_overflow = 0;
+             <span style="color:#0000cd;font-size:10.0pt;">end</span>
+         <span style="color:#4169e1;font-size:10.0pt;">endcase</span>
+
+         <span style="color:#483d8b;font-size:10.0pt;">#1;</span>
+
+         <span style="color:#4169e1;font-size:10.0pt;">if</span>( shadow_result != result ) <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+            <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$display</span>(<span style="color:#2f4f4f;font-size:10.0pt;">"Wrong result op %d,  %x op %x = %x != %x"</span>,
+                     alu_op, a, b, shadow_result, result);
+            <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$stop</span>;
+         <span style="color:#0000cd;font-size:10.0pt;">end</span>
+         <span style="color:#4169e1;font-size:10.0pt;">if</span>( shadow_overflow != overflow ) <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+            <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$display</span>(<span style="color:#2f4f4f;font-size:10.0pt;">"Wrong overflow op %d,  %x op %x;  %d != %d"</span>,
+                     alu_op, a, b, shadow_overflow, overflow);
+            <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$stop</span>;
+         <span style="color:#0000cd;font-size:10.0pt;">end</span>
+      <span style="color:#0000cd;font-size:10.0pt;">end</span>
+      <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$display</span>(<span style="color:#2f4f4f;font-size:10.0pt;">"Done with test."</span>);
+   <span style="color:#0000cd;font-size:10.0pt;">end</span>
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">//////////////////////////////////////////////////////////////////////////////
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Carry Look Ahead Adders</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:PH: 4.5 (In middle of section 4.5.)
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Motivation</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Ripple adders take too long:
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Delay of n-bit adder is 2n+1 gate delays.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Modern processors need 1-cycle 64-bit adders,
+</span><span style="color:#b22222;font-size:10.0pt;">//      </span><span style="color:#b22222;font-size:10.0pt;">that's 129 gate delays in one cycle. A ripple adder is too slow.
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Carry Look-Ahead Adder Properties</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">More expensive but much faster.
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Cost varies by configuration.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Flat (One-level) Carry Look-Ahead Adder
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Delay is six gate delays, regardless of size. (Counting xor as 3 gates.)
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Cost is proportional to square of number of bits.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Requires large-fan-in gates, which may not be practical.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Multiple Level Carry Look-Ahead Adders.  (Second level of abstraction.)
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Delay typically proportional to square root number of bits or lower.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Cost lower than flat CLA.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Designed to fit technology constraints and capabilities (fan-in, etc.)
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">//////////////////////////////////////////////////////////////////////////////
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Flat Carry Look-Ahead Adder</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:PH: 4.5 (In middle of section 4.5.)
+</span>
+ <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Flat Carry Look-Ahead Adder Structure</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">At each slice (pair of input bits and output bit) create a
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">/generate/ and /propagate/ signal to be used by more-significant
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">bits.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">At each slice use generate and propagate signals of less-significant
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">bits to produce a sign bit.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">See examples below.
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A slice for a CLA.  Like a BFA, its inputs are one bit
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">of each operand, a and b, and a carry in, cin.  Its outputs
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">are one bit of the sum and, instead of a cout, a generate
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">and propagate signal.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">cla_slice</span>(sum,g,p,a,b,cin);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> <span style="color:#b8860b;font-size:10.0pt;">cin</span>; <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Determined using other generate and propagates.
+</span>   <span style="color:#4169e1;font-size:10.0pt;">output</span> <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> <span style="color:#b8860b;font-size:10.0pt;">g</span>; <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Generate
+</span>   <span style="color:#4169e1;font-size:10.0pt;">output</span> <span style="color:#b8860b;font-size:10.0pt;">p</span>; <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Propagate
+</span>
+   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Generate</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">If a and b are 1 a carry will be generated here.
+</span>   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">g </span>= a &amp; b;
+
+   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Propagate</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">If a or b are 1 a carry in to this digit position will
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">"propagate through" to a carry out.  (There is no actual
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">carry out signal.)
+</span>   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">p </span>= a | b;
+
+   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Sum</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">This is the usual formula for the sum.
+</span>   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sum </span>=
+          ~a &amp; ~b &amp;  cin |
+          ~a &amp;  b &amp; ~cin |
+           a &amp; ~b &amp; ~cin |
+           a &amp;  b &amp;  cin;
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A 5-bit CLA using five cla slices.  The generate and propagate
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">signals are used to produce the carry in signals.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">cla_5</span>(sum,a,b);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [4:0] <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [5:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [4:0]   <span style="color:#b8860b;font-size:10.0pt;">g</span>, <span style="color:#b8860b;font-size:10.0pt;">p</span>, <span style="color:#b8860b;font-size:10.0pt;">carry</span>;
+
+   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#b22222;font-size:10.0pt;font-family:sans-serif;font-weight:bold;">Logic for Carry In Signals</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">General idea:  for there to be a carry at bit x either:
+</span>   <span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">either the carry is generated at bit x-1
+</span>   <span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">or the carry is generated at bit x-2 and prop. through x-1
+</span>   <span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">or the carry is generated at bit x-3 and prop. through x-1 and x-1
+</span>   <span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">...
+</span>   <span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">or the carry is generated at bit 0 and prop. through 1 and ... and x-1
+</span>
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[0] </span>= <span style="color:#999999;font-size:10.0pt;">1'b</span>0;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[1] </span>= g[0];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[2] </span>= g[0] &amp; p[1]
+                         | g[1];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[3] </span>= g[0] &amp; p[1] &amp; p[2]
+                         | g[1] &amp; p[2]
+                         | g[2];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[4] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3]
+                         | g[1] &amp; p[2] &amp; p[3]
+                         | g[2] &amp; p[3]
+                         | g[3];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sum[5] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4]
+                 | g[1] &amp; p[2] &amp; p[3] &amp; p[4]
+                 | g[2] &amp; p[3] &amp; p[4]
+                 | g[3] &amp; p[4]
+                 | g[4];
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s0</span>(sum[0],g[0],p[0],a[0],b[0],carry[0]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s1</span>(sum[1],g[1],p[1],a[1],b[1],carry[1]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s2</span>(sum[2],g[2],p[2],a[2],b[2],carry[2]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s3</span>(sum[3],g[3],p[3],a[3],b[3],carry[3]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s4</span>(sum[4],g[4],p[4],a[4],b[4],carry[4]);
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Testbench for CLA.  The testbench includes material not covered
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">in the course.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">testcla</span>();
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [5:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">reg</span> [5:0] <span style="color:#b8860b;font-size:10.0pt;">shadow_sum</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">reg</span> [4:0]  <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">integer</span>    <span style="color:#b8860b;font-size:10.0pt;">i</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_5</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">c</span>(sum, a, b);
+
+   <span style="color:#000080;font-size:10.0pt;">initial</span> <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+
+      <span style="color:#4169e1;font-size:10.0pt;">for</span>(i=0; i&lt;1024; i=i+1) <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+
+         a = i[4:0];
+         b = i[9:5];
+         shadow_sum = a + b;
+         <span style="color:#483d8b;font-size:10.0pt;">#1;</span>
+         <span style="color:#4169e1;font-size:10.0pt;">if</span>( sum != shadow_sum ) <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+            <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$display</span>(<span style="color:#2f4f4f;font-size:10.0pt;">"Wrong sum: %h + %h = %h != %h\n"</span>,
+                     a, b, shadow_sum, sum);
+            <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$stop</span>;
+         <span style="color:#0000cd;font-size:10.0pt;">end</span>
+      <span style="color:#0000cd;font-size:10.0pt;">end</span>
+
+      <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$display</span>(<span style="color:#2f4f4f;font-size:10.0pt;">"Tests completed."</span>);
+
+   <span style="color:#0000cd;font-size:10.0pt;">end</span>
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">//////////////////////////////////////////////////////////////////////////////
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Two-Level Carry Look-Ahead Adder</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">:PH: 4.5 (In middle of section 4.5.)  Also see Figure 4.24
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Goal: Avoid large fan-ins of flat CLA.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Idea:
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Divide adder into multiple adder blocks.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Each adder block is itself a CLA.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Adder block produces "super" generate and propagate signals.
+</span><span style="color:#b22222;font-size:10.0pt;">//   </span><span style="color:#b22222;font-size:10.0pt;">Use these to generate cin for adder blocks.
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Below a 12-bit two-level CLA is constructed using three 4-bit adder
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">blocks.
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">For comparison, these are followed by a flat 12-bit CLA, a 12-bit
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">ripple adder, and a testbench.
+</span>
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A four-bit adder block.  This uses the same cla_slice as the
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">earlier CLA.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">cla_4_block</span>(sum,gout,pout,a,b,cin);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [3:0]  <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">input</span>        <span style="color:#b8860b;font-size:10.0pt;">cin</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [3:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span>       <span style="color:#b8860b;font-size:10.0pt;">gout</span>, <span style="color:#b8860b;font-size:10.0pt;">pout</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [3:0]   <span style="color:#b8860b;font-size:10.0pt;">carry</span>, <span style="color:#b8860b;font-size:10.0pt;">p</span>, <span style="color:#b8860b;font-size:10.0pt;">g</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[0] </span>= cin;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[1] </span>= cin  &amp; p[0]
+                   | g[0];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[2] </span>= cin  &amp; p[0] &amp; p[1]
+                   | g[0] &amp; p[1]
+                   | g[1];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[3] </span>= cin  &amp; p[0] &amp; p[1] &amp; p[2]
+                   | g[0] &amp; p[1] &amp; p[2]
+                   | g[1] &amp; p[2]
+                   | g[2];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">gout </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3]
+               | g[1] &amp; p[2] &amp; p[3]
+               | g[2] &amp; p[3]
+               | g[3];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">pout </span>= p[0] &amp; p[1] &amp; p[2] &amp; p[3];
+
+   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">a: 0
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">p,g: 1
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">pout: 2
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">gout: 3
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">cin: 5
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">carry: 7
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">sum: 10
+</span>
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s0</span>(sum[0],g[0],p[0],a[0],b[0],carry[0]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s1</span>(sum[1],g[1],p[1],a[1],b[1],carry[1]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s2</span>(sum[2],g[2],p[2],a[2],b[2],carry[2]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s3</span>(sum[3],g[3],p[3],a[3],b[3],carry[3]);
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">The 12-bit two-level CLA.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">cla_12_two_level</span>(sum,a,b);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [11:0]  <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [12:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [2:0]  <span style="color:#b8860b;font-size:10.0pt;">P</span>, <span style="color:#b8860b;font-size:10.0pt;">G</span>, <span style="color:#b8860b;font-size:10.0pt;">carry</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>      <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[0] </span>= <span style="color:#999999;font-size:10.0pt;">1'b</span>0;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>      <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[1] </span>= G[0];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>      <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[2] </span>= G[0] &amp; P[1]
+                        | G[1];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>      <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sum[12] </span>= G[0] &amp; P[1] &amp; P[2]
+                       | G[1] &amp; P[2]
+                       | G[2];
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_4_block</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">ad0</span>(sum[3:0],  G[0], P[0], a[3:0],  b[3:0],  carry[0]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_4_block</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">ad1</span>(sum[7:4],  G[1], P[1], a[7:4],  b[7:4],  carry[1]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_4_block</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">ad2</span>(sum[11:8], G[2], P[2], a[11:8], b[11:8], carry[2]);
+
+   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">P: 2
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">G: 3
+</span>   <span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">carry: 5
+</span>
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A 12-bit flat CLA.  For comparison with the two-level adder.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">cla_12_flat</span>(sum,a,b);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [11:0] <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [12:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [11:0]   <span style="color:#b8860b;font-size:10.0pt;">g</span>, <span style="color:#b8860b;font-size:10.0pt;">p</span>, <span style="color:#b8860b;font-size:10.0pt;">carry</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[0] </span>= <span style="color:#999999;font-size:10.0pt;">1'b</span>0;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[1] </span>= <span style="color:#999999;font-size:10.0pt;">1'b</span>0;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[2] </span>= g[0] &amp; p[1]
+                | g[1];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[3] </span>= g[0] &amp; p[1] &amp; p[2]
+                | g[1] &amp; p[2]
+                | g[2];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[4] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3]
+                | g[1] &amp; p[2] &amp; p[3]
+                | g[2] &amp; p[3]
+                | g[3];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[5] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4]
+                | g[1] &amp; p[2] &amp; p[3] &amp; p[4]
+                | g[2] &amp; p[3] &amp; p[4]
+                | g[3] &amp; p[4]
+                | g[4];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[6] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5]
+                | g[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5]
+                | g[2] &amp; p[3] &amp; p[4] &amp; p[5]
+                | g[3] &amp; p[4] &amp; p[5]
+                | g[4] &amp; p[5]
+                | g[5];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[7] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6]
+                | g[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6]
+                | g[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6]
+                | g[3] &amp; p[4] &amp; p[5] &amp; p[6]
+                | g[4] &amp; p[5] &amp; p[6]
+                | g[5] &amp; p[6]
+                | g[6];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[8] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7]
+                | g[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7]
+                | g[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7]
+                | g[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7]
+                | g[4] &amp; p[5] &amp; p[6] &amp; p[7]
+                | g[5] &amp; p[6] &amp; p[7]
+                | g[6] &amp; p[7]
+                | g[7];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[9] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8]
+                | g[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8]
+                | g[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8]
+                | g[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8]
+                | g[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8]
+                | g[5] &amp; p[6] &amp; p[7] &amp; p[8]
+                | g[6] &amp; p[7] &amp; p[8]
+                | g[7] &amp; p[8]
+                | g[8];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[10] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9]
+                | g[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9]
+                | g[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9]
+                | g[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9]
+                | g[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9]
+                | g[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9]
+                | g[6] &amp; p[7] &amp; p[8] &amp; p[9]
+                | g[7] &amp; p[8] &amp; p[9]
+                | g[8] &amp; p[9]
+                | g[9];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">carry[11] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10]
+                | g[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10]
+                | g[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10]
+                | g[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10]
+                | g[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10]
+                | g[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10]
+                | g[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10]
+                | g[7] &amp; p[8] &amp; p[9] &amp; p[10]
+                | g[8] &amp; p[9] &amp; p[10]
+                | g[9] &amp; p[10]
+                | g[10];
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span>       <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sum[12] </span>= g[0] &amp; p[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[1] &amp; p[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[2] &amp; p[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[3] &amp; p[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[4] &amp; p[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[5] &amp; p[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[6] &amp; p[7] &amp; p[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[7] &amp; p[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[8] &amp; p[9] &amp; p[10] &amp; p[11]
+                | g[9] &amp; p[10] &amp; p[11]
+                | g[10] &amp; p[11]
+                | g[11];
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s0</span>(sum[0],g[0],p[0],a[0],b[0],carry[0]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s1</span>(sum[1],g[1],p[1],a[1],b[1],carry[1]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s2</span>(sum[2],g[2],p[2],a[2],b[2],carry[2]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s3</span>(sum[3],g[3],p[3],a[3],b[3],carry[3]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s4</span>(sum[4],g[4],p[4],a[4],b[4],carry[4]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s5</span>(sum[5],g[5],p[5],a[5],b[5],carry[5]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s6</span>(sum[6],g[6],p[6],a[6],b[6],carry[6]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s7</span>(sum[7],g[7],p[7],a[7],b[7],carry[7]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s8</span>(sum[8],g[8],p[8],a[8],b[8],carry[8]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s9</span>(sum[9],g[9],p[9],a[9],b[9],carry[9]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s10</span>(sum[10],g[10],p[10],a[10],b[10],carry[10]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_slice</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">s11</span>(sum[11],g[11],p[11],a[11],b[11],carry[11]);
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">A BFA, for use in 12-bit ripple adder.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">bfa_implicit</span>(sum,cout,a,b,cin);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> <span style="color:#b8860b;font-size:10.0pt;">a</span>,<span style="color:#b8860b;font-size:10.0pt;">b</span>,<span style="color:#b8860b;font-size:10.0pt;">cin</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> <span style="color:#b8860b;font-size:10.0pt;">sum</span>,<span style="color:#b8860b;font-size:10.0pt;">cout</span>;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">sum </span>=
+          ~a &amp; ~b &amp;  cin |
+          ~a &amp;  b &amp; ~cin |
+           a &amp; ~b &amp; ~cin |
+           a &amp;  b &amp;  cin;
+
+   <span style="color:#4169e1;font-size:10.0pt;">assign</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">cout </span>= a &amp; b | b &amp; cin | a &amp; cin;
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Twelve-bit ripple adder, for comparison.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">ripple_12</span>(sum,a,b);
+   <span style="color:#4169e1;font-size:10.0pt;">input</span> [11:0] <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#4169e1;font-size:10.0pt;">output</span> [12:0] <span style="color:#b8860b;font-size:10.0pt;">sum</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [11:0]  <span style="color:#b8860b;font-size:10.0pt;">carry</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa0</span>(sum[0],carry[0],a[0],b[0],<span style="color:#999999;font-size:10.0pt;">1'b</span>0);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa1</span>(sum[1],carry[1],a[1],b[1],carry[0]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa2</span>(sum[2],carry[2],a[2],b[2],carry[1]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa3</span>(sum[3],carry[3],a[3],b[3],carry[2]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa4</span>(sum[4],carry[4],a[4],b[4],carry[3]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa5</span>(sum[5],carry[5],a[5],b[5],carry[4]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa6</span>(sum[6],carry[6],a[6],b[6],carry[5]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa7</span>(sum[7],carry[7],a[7],b[7],carry[6]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa8</span>(sum[8],carry[8],a[8],b[8],carry[7]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa9</span>(sum[9],carry[9],a[9],b[9],carry[8]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa10</span>(sum[10],carry[10],a[10],b[10],carry[9]);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">bfa_implicit</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">bfa11</span>(sum[11],sum[12],a[11],b[11],carry[10]);
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#228b22;font-size:10.0pt;font-weight:bold;">Example</span><span style="color:#999999;font-size:10.0pt;">:</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">
+</span><span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Testbench.  Runs all three adders.  Material for testbench not covered.
+</span>
+<span style="color:#000080;font-size:10.0pt;">module</span> <span style="color:#000000;font-size:13.0pt;font-family:sans-serif;font-weight:bold;">testcla2</span>();
+   <span style="color:#a020f0;font-size:10.0pt;">wire</span> [12:0] <span style="color:#b8860b;font-size:10.0pt;">sum_r</span>, <span style="color:#b8860b;font-size:10.0pt;">sum_2</span>, <span style="color:#b8860b;font-size:10.0pt;">sum_f</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">reg</span> [12:0] <span style="color:#b8860b;font-size:10.0pt;">shadow_sum</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">reg</span> [11:0]  <span style="color:#b8860b;font-size:10.0pt;">a</span>, <span style="color:#b8860b;font-size:10.0pt;">b</span>;
+   <span style="color:#a020f0;font-size:10.0pt;">integer</span>    <span style="color:#b8860b;font-size:10.0pt;">i</span>;
+
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_12_flat</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">c1</span>(sum_f,a,b);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">cla_12_two_level</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">c2</span>(sum_2,a,b);
+   <span style="color:#a020f0;font-size:10.0pt;text-decoration:underline;">ripple_12</span> <span style="color:#000000;font-size:10.0pt;font-weight:bold;">c3</span>(sum_r,a,b);
+
+
+   <span style="color:#000080;font-size:10.0pt;">initial</span> <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+
+      <span style="color:#4169e1;font-size:10.0pt;">for</span>(i=0; i&lt;4194304; i=i+1) <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+
+         a = i[11:0];
+         b = i[21:12];
+         shadow_sum = a + b;
+         <span style="color:#483d8b;font-size:10.0pt;">#1;</span>
+         <span style="color:#4169e1;font-size:10.0pt;">if</span>( sum_2 != shadow_sum || sum_2 != sum_r || sum_2 != sum_f ) <span style="color:#0000cd;font-size:10.0pt;">begin</span>
+            <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$display</span>(<span style="color:#2f4f4f;font-size:10.0pt;">"Wrong sum: %h + %h = %h != %h or %h or %h\n"</span>,
+                     a, b, shadow_sum, sum_2, sum_f, sum_r);
+            <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$stop</span>;
+         <span style="color:#0000cd;font-size:10.0pt;">end</span>
+      <span style="color:#0000cd;font-size:10.0pt;">end</span>
+
+      <span style="color:#4169e1;font-size:10.0pt;text-decoration:underline;">$display</span>(<span style="color:#2f4f4f;font-size:10.0pt;">"Tests completed."</span>);
+
+   <span style="color:#0000cd;font-size:10.0pt;">end</span>
+
+<span style="color:#000080;font-size:10.0pt;">endmodule</span>
+
+
+<span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">//////////////////////////////////////////////////////////////////////////////
+</span><span style="color:#b22222;font-size:10.0pt;">//</span><span style="color:#b22222;font-size:10.0pt;">/ </span><span style="color:#000000;font-size:15.0pt;font-family:sans-serif;font-weight:bold;">Real-World Integer Adders</span><span style="color:#b22222;font-size:10.0pt;">
+</span>
+<span style="color:#b22222;font-size:10.0pt;">// </span><span style="color:#b22222;font-size:10.0pt;">Under construction.
+</span></pre>
+  
+
+</body></html>
